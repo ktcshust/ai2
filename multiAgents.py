@@ -53,29 +53,29 @@ class ReflexAgent(Agent):
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState: GameState, action):
-        """
-        Design a better evaluation function here.
-
-        The evaluation function takes in the current and proposed successor
-        GameStates (pacman.py) and returns a number, where higher numbers are better.
-
-        The code below extracts some useful information from the state, like the
-        remaining food (newFood) and Pacman position after moving (newPos).
-        newScaredTimes holds the number of moves that each ghost will remain
-        scared because of Pacman having eaten a power pellet.
-
-        Print out these variables to see what you're getting, then combine them
-        to create a masterful evaluation function.
-        """
-        # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # Calculate the distance to the closest food pellet
+        if len(newFood) > 0:
+            min_food_distance = min([manhattanDistance(newPos, food) for food in newFood])
+        else:
+            min_food_distance = 0
+
+        # Calculate the distance to the closest ghost
+        ghost_distances = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
+
+        # If Pacman is near a ghost, it's a bad state
+        if min(ghost_distances) < 2:
+            return -float('inf')
+
+        # Combine these factors in your evaluation function
+        evaluation = successorGameState.getScore() - 2 * min_food_distance + sum(ghost_distances)
+
+        return evaluation
+
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """

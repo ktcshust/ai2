@@ -167,13 +167,52 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
-    Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-    evaluation function (question 5).
+    Evaluation function for the Pacman game.
 
-    DESCRIPTION: <write something here so we know what you did>
+    This evaluation function takes into account the following factors:
+    - Pacman's score
+    - Remaining food on the board
+    - Distance to the nearest ghost
+    - Ghosts' scared times
+
+    The evaluation function returns a score that reflects the desirability of the current game state.
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # Extract useful information from the current game state
+    pacmanPosition = currentGameState.getPacmanPosition()
+    foodGrid = currentGameState.getFood()
+    ghostStates = currentGameState.getGhostStates()
+
+    # Pacman's current score
+    score = currentGameState.getScore()
+
+    # Calculate the distance to the nearest ghost
+    minGhostDistance = min([manhattanDistance(pacmanPosition, ghost.getPosition()) for ghost in ghostStates])
+
+    # Consider the effect of ghost scared times
+    ghostScaredTimes = [ghost.scaredTimer for ghost in ghostStates]
+    minScaredTime = min(ghostScaredTimes)
+
+    # If a ghost is near, prioritize avoiding it
+    if minGhostDistance < 2:
+        return -float('inf')
+
+    # Calculate the total food count
+    foodList = foodGrid.asList()
+    totalFoodCount = len(foodList)
+
+    # If no food left, return a high score
+    if totalFoodCount == 0:
+        return float('inf')
+
+    # Calculate the reciprocal of the distance to the nearest food pellet
+    minFoodDistance = min([manhattanDistance(pacmanPosition, food) for food in foodList])
+
+    # Calculate the final score based on the factors
+    evaluation = score + 1.0 / minFoodDistance - 2.0 * minGhostDistance + minScaredTime
+
+    return evaluation
+
 
 # Abbreviation
 better = betterEvaluationFunction

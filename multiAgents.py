@@ -139,16 +139,51 @@ class MinimaxAgent(MultiAgentSearchAgent):
         util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
-    """
-    Your minimax agent with alpha-beta pruning (question 3)
-    """
-
     def getAction(self, gameState: GameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def max_value(state, depth, alpha, beta):
+            if depth == 0 or state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+            v = float("-inf")
+            for action in state.getLegalActions(0):
+                v = max(v, min_value(state.generateSuccessor(0, action), 1, depth, alpha, beta))
+                if v > beta:
+                    return v
+                alpha = max(alpha, v)
+            return v
+
+        def min_value(state, agent_index, depth, alpha, beta):
+            if state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+            v = float("inf")
+            for action in state.getLegalActions(agent_index):
+                if agent_index == gameState.getNumAgents() - 1:
+                    v = min(v, max_value(state.generateSuccessor(agent_index, action), depth - 1, alpha, beta))
+                else:
+                    v = min(v, min_value(state.generateSuccessor(agent_index, action), agent_index + 1, depth, alpha, beta))
+                if v < alpha:
+                    return v
+                beta = min(beta, v)
+            return v
+
+        legalActions = gameState.getLegalActions(0)
+        best_action = None
+        best_value = float("-inf")
+        alpha = float("-inf")
+        beta = float("inf")
+
+        for action in legalActions:
+            successor = gameState.generateSuccessor(0, action)
+            value = min_value(successor, 1, self.depth, alpha, beta)
+            if value > best_value:
+                best_value = value
+                best_action = action
+            alpha = max(alpha, best_value)
+
+        return best_action
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
